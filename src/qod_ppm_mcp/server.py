@@ -506,16 +506,14 @@ def ppm_ping() -> dict[str, Any]:
 
 
 @mcp.tool()
-def ppm_list_action_tools() -> list[dict[str, str]]:
+async def ppm_list_action_tools() -> list[dict[str, str]]:
     """List every PPM action/wizard tool this server exposes, with a one-line description.
 
     Useful when Claude is deciding whether to call a custom tool or fall back
     to the generic Odoo MCP's `update_record`/`search_records`.
     """
-    tools = []
-    for name, fn in sorted(globals().items()):
-        if not callable(fn) or not name.startswith("ppm_"):
-            continue
-        doc = (fn.__doc__ or "").strip().splitlines()[0] if fn.__doc__ else ""
-        tools.append({"name": name, "summary": doc})
-    return tools
+    registered = await mcp.list_tools()
+    return [
+        {"name": t.name, "summary": (t.description or "").strip().splitlines()[0]}
+        for t in registered
+    ]
